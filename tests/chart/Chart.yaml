@@ -1,0 +1,10 @@
+apiVersion: v2
+name: test-commons
+description: Test harness for plat-eng-commons-package library chart
+type: application
+version: "0.1.0"
+appVersion: "0.1.0"
+dependencies:
+  - name: plat-eng-commons-package
+    version: "0.x.x"
+    repository: "file://../../"
