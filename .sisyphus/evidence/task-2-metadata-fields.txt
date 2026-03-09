@@ -1,0 +1,4 @@
+PASS: maintainers
+PASS: keywords
+PASS: home
+PASS: sources
