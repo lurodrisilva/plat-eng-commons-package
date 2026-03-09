@@ -25,3 +25,4 @@
 Makefile
 AGENTS.md
 .sisyphus/
+tests/

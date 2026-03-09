@@ -1,0 +1,81 @@
+suite: test myorg.labels and myorg.selectorLabels
+templates:
+  - configmap.yaml
+chart:
+  version: "0.1.0"
+  appVersion: "0.1.0"
+tests:
+
+  # ─── myorg.selectorLabels ─────────────────────────────────────────────────
+
+  - it: "myorg.selectorLabels — includes name and instance labels"
+    asserts:
+      - isSubset:
+          path: metadata.labels
+          content:
+            app.kubernetes.io/name: test-commons
+            app.kubernetes.io/instance: RELEASE-NAME
+
+  - it: "myorg.selectorLabels — instance label reflects release name"
+    release:
+      name: "my-release"
+    asserts:
+      - isSubset:
+          path: metadata.labels
+          content:
+            app.kubernetes.io/instance: my-release
+
+  # ─── myorg.labels ─────────────────────────────────────────────────────────
+
+  - it: "myorg.labels — all 5 standard labels present by default"
+    asserts:
+      - isSubset:
+          path: metadata.labels
+          content:
+            helm.sh/chart: test-commons-0.1.0
+            app.kubernetes.io/name: test-commons
+            app.kubernetes.io/instance: RELEASE-NAME
+            app.kubernetes.io/version: "0.1.0"
+            app.kubernetes.io/managed-by: Helm
+
+  - it: "myorg.labels — version label reflects chart appVersion"
+    chart:
+      version: "0.1.0"
+      appVersion: "2.5.0"
+    asserts:
+      - isSubset:
+          path: metadata.labels
+          content:
+            app.kubernetes.io/version: "2.5.0"
+
+  - it: "myorg.labels — commonLabels are merged into label set"
+    set:
+      commonLabels:
+        team: platform
+        environment: production
+    asserts:
+      - isSubset:
+          path: metadata.labels
+          content:
+            team: platform
+            environment: production
+
+  - it: "myorg.labels — standard labels survive when commonLabels are added"
+    set:
+      commonLabels:
+        team: platform
+    asserts:
+      - isSubset:
+          path: metadata.labels
+          content:
+            app.kubernetes.io/name: test-commons
+            app.kubernetes.io/managed-by: Helm
+            team: platform
+
+  - it: "myorg.labels — no extra labels when commonLabels is empty"
+    asserts:
+      - isSubset:
+          path: metadata.labels
+          content:
+            helm.sh/chart: test-commons-0.1.0
+            app.kubernetes.io/managed-by: Helm
