@@ -46,12 +46,23 @@ helm package .
 helm template <release-name> ./path/to/consuming-chart --debug
 ```
 
-### Helm unittest (infrastructure exists, no tests yet)
+### Helm unittest
 ```bash
-# templates/tests/ is empty — no tests defined yet
-# make test will print "No tests found in templates/tests/ — skipping"
-make test
+# Build wrapper chart dependencies (required before first test run)
+helm dependency build tests/chart
+
+# Run all tests
+helm unittest -f 'tests/unit/*.yaml' tests/chart
+# or: make test  (handles dependency build automatically)
+
+# Update snapshots
+helm unittest -u -f 'tests/unit/*.yaml' tests/chart
+# or: make snapshot-update
 ```
+
+Tests live in `tests/chart/tests/unit/`. Library charts cannot be tested directly (no
+renderable resources) — a wrapper `type: application` chart at `tests/chart/` depends on
+the library and calls each named template through a harness ConfigMap.
 
 ### Dependency update (for consuming charts)
 ```bash
@@ -68,8 +79,16 @@ helm dependency update ./path/to/consuming-chart
 ├── Makefile                # Common tasks: lint, test, package, snapshot-update
 ├── values.yaml             # Default values with inline documentation
 ├── templates/
-│   ├── _helpers.tpl        # All named templates (SOURCE OF TRUTH)
-│   └── tests/              # Helm test hooks (empty — not yet implemented)
+│   └── _helpers.tpl        # All named templates (SOURCE OF TRUTH)
+├── tests/
+│   └── chart/              # Wrapper app chart for helm-unittest (type: application)
+│       ├── Chart.yaml      # Depends on library via file://../../
+│       ├── templates/
+│       │   └── configmap.yaml  # Harness template calling all 5 library helpers
+│       └── tests/
+│           └── unit/           # helm-unittest test suites
+│               ├── names_test.yaml    # myorg.name, myorg.fullname, myorg.chart
+│               └── labels_test.yaml   # myorg.labels, myorg.selectorLabels
 ├── README.md               # Consumer-facing documentation
 ├── .helmignore             # Patterns excluded from helm package
 └── .gitignore              # Excludes *.tgz, charts/, *.prov, .sisyphus/

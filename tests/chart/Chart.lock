@@ -1,0 +1,6 @@
+dependencies:
+- name: plat-eng-commons-package
+  repository: file://../../
+  version: 0.1.0
+digest: sha256:b2a9216e546578189abd2d5f621e50fb3962ac7ebfd9a55be1a5e174a81c0ce0
+generated: "2026-03-09T13:41:01.166073-03:00"
