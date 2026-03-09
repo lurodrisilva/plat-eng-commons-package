@@ -1,0 +1,6 @@
+PASS: nameOverride
+PASS: fullnameOverride
+PASS: commonLabels
+PASS: commonAnnotations
+PASS: team
+PASS: environment

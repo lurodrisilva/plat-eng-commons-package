@@ -1,4 +1,24 @@
+# nameOverride is an optional override for the chart name used in resource naming.
+# Used by the "myorg.name" and "myorg.fullname" templates.
+nameOverride: ""
+
+# fullnameOverride is an optional override for the fully qualified resource name.
+# When set, it replaces the default "{release}-{chart}" naming pattern entirely.
+# Used by the "myorg.fullname" template.
+fullnameOverride: ""
+
+# commonLabels is a map of additional labels to apply to all resources.
+# These labels are merged into the output of the "myorg.labels" template.
 commonLabels: {}
+
+# commonAnnotations is a map of additional annotations for resources.
+# (reserved — not currently used in templates; intended for future use)
 commonAnnotations: {}
+
+# team is the team identifier for resource ownership tracking.
+# (reserved — not currently used in templates; intended for future use)
 team: ""
+
+# environment is the deployment environment name (e.g., dev, staging, production).
+# (reserved — not currently used in templates; intended for future use)
 environment: ""

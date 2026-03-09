@@ -21,4 +21,20 @@ version: 0.1.0
 # incremented each time you make changes to the application. Versions are not expected to
 # follow Semantic Versioning. They should reflect the version the application is using.
 # It is recommended to use it with quotes.
-appVersion: "1.16.0"
+appVersion: "0.1.0"
+
+keywords:
+  - common
+  - helper
+  - template
+  - labels
+  - platform-engineering
+
+home: https://github.com/your-org/plat-eng-commons-package
+
+sources:
+  - https://github.com/your-org/plat-eng-commons-package
+
+maintainers:
+  - name: Platform Engineering
+    email: platform-engineering@your-org.com
