@@ -1,6 +1,6 @@
 # plat-eng-commons-package
 
-[![CI](https://github.com/lurodrisilva/plat-eng-commons-package/actions/workflows/ci.yml/badge.svg)](https://github.com/lurodrisilva/plat-eng-commons-package/actions/workflows/helm-ci.yml)
+[![CI](https://github.com/lurodrisilva/plat-eng-commons-package/actions/workflows/helm-ci.yml/badge.svg)](https://github.com/lurodrisilva/plat-eng-commons-package/actions/workflows/helm-ci.yml)
 
 A Helm library chart providing common naming helpers and Kubernetes labels for the platform engineering stack.
 
