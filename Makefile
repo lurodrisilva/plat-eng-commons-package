@@ -47,7 +47,7 @@ package: ## Package the chart into a versioned .tgz archive
 ## Clean .tgz archive
 clean: ## Package the chart into a versioned .tgz archive
 	@echo "Cleaning plat-eng-commons-package..."
-	rm lat-eng-commons-package-*.tgz
+	rm plat-eng-commons-package-*.tgz
 	@echo "Cleanup complete"
 
 ## Run lint and test
