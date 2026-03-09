@@ -14,48 +14,31 @@ A **Helm library chart** (`type: library`) providing shared naming helpers and K
 
 ## Commands
 
-### Make targets (preferred — use these day-to-day)
 ```bash
 make help             # List all available targets
-make lint             # Lint the chart (primary validation — run after every change)
-make test             # Run helm-unittest tests (graceful no-op when no tests exist)
+make lint             # Lint the chart — run after every change
+make test             # Run helm-unittest tests (auto-builds deps)
 make snapshot-update  # Update helm-unittest snapshots
 make package          # Package the chart into a versioned .tgz archive
-make all              # Run lint + test
+make all              # lint + test
 make plugin-install   # Install the helm-unittest plugin (one-time setup)
 ```
 
-### Lint (primary validation — run after every change)
+**Run a single test suite** (faster during development):
 ```bash
-helm lint .
-# or: make lint
-```
-Expected output: `1 chart(s) linted, 0 chart(s) failed`
-The `[INFO] Chart.yaml: icon is recommended` warning is expected and non-blocking.
-
-### Package (produce distributable archive)
-```bash
-helm package .
-# Output: plat-eng-commons-package-0.1.0.tgz (gitignored)
-# or: make package
+helm dependency build tests/chart
+helm unittest -f 'tests/unit/names_test.yaml' tests/chart   # names only
+helm unittest -f 'tests/unit/labels_test.yaml' tests/chart  # labels only
 ```
 
-### Template rendering (debug helpers in context)
+**Lint** (primary validation — expected output: `1 chart(s) linted, 0 chart(s) failed`):
 ```bash
-# Render a consuming chart's templates with this library as a dependency
+helm lint .   # [INFO] icon warning is expected and non-blocking
+```
+
+**Debug template rendering** (in a consuming chart context):
+```bash
 helm template <release-name> ./path/to/consuming-chart --debug
-```
-
-### Helm unittest (infrastructure exists, no tests yet)
-```bash
-# templates/tests/ is empty — no tests defined yet
-# make test will print "No tests found in templates/tests/ — skipping"
-make test
-```
-
-### Dependency update (for consuming charts)
-```bash
-helm dependency update ./path/to/consuming-chart
 ```
 
 ---
@@ -68,23 +51,30 @@ helm dependency update ./path/to/consuming-chart
 ├── Makefile                # Common tasks: lint, test, package, snapshot-update
 ├── values.yaml             # Default values with inline documentation
 ├── templates/
-│   ├── _helpers.tpl        # All named templates (SOURCE OF TRUTH)
-│   └── tests/              # Helm test hooks (empty — not yet implemented)
+│   └── _helpers.tpl        # All named templates (SOURCE OF TRUTH)
+├── tests/
+│   └── chart/              # Wrapper app chart for helm-unittest (type: application)
+│       ├── Chart.yaml      # Depends on library via file://../../
+│       ├── templates/
+│       │   └── configmap.yaml  # Harness template calling all 5 library helpers
+│       └── tests/
+│           └── unit/           # helm-unittest test suites (*_test.yaml)
 ├── README.md               # Consumer-facing documentation
 ├── .helmignore             # Patterns excluded from helm package
 └── .gitignore              # Excludes *.tgz, charts/, *.prov, .sisyphus/
 ```
+
+**Testing pattern**: Library charts produce no rendered resources and cannot be tested directly. A wrapper `type: application` chart at `tests/chart/` depends on the library via `file://../../` and calls each named template through a harness ConfigMap. Test suites assert on the rendered ConfigMap output.
 
 ---
 
 ## Template Authoring Rules
 
 ### Naming convention
-- All templates **must** use the `myorg.` prefix: `myorg.name`, `myorg.labels`, etc.
-- Template names are **globally scoped** within a Helm release — never redefine `myorg.*` in consuming charts.
+All templates **must** use the `myorg.` prefix: `myorg.name`, `myorg.labels`, etc. Template names are globally scoped within a Helm release — never redefine `myorg.*` in consuming charts.
 
 ### Whitespace control
-Always use `{{- ... -}}` (dash on both sides) for `define` blocks to prevent blank-line output:
+Always use `{{- ... -}}` (dash on both sides) for `define` blocks:
 ```yaml
 {{- define "myorg.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
@@ -92,17 +82,12 @@ Always use `{{- ... -}}` (dash on both sides) for `define` blocks to prevent bla
 ```
 
 ### Name truncation — mandatory on all name outputs
-Every template that produces a Kubernetes resource name **must** apply:
-```yaml
-| trunc 63 | trimSuffix "-"
-```
-Kubernetes name fields have a 63-character limit. The `trimSuffix "-"` prevents trailing hyphens after truncation.
+Every template producing a Kubernetes resource name **must** apply `| trunc 63 | trimSuffix "-"`. The 63-char limit is a Kubernetes constraint; `trimSuffix "-"` prevents trailing hyphens after truncation.
 
 ### Use `include` not `template`
-Always use `include` (returns a string, pipeable) instead of `template` (returns nothing):
+`include` returns a string (pipeable); `template` returns nothing:
 ```yaml
 # CORRECT
-{{ include "myorg.labels" . }}
 {{- include "myorg.labels" . | nindent 4 }}
 
 # WRONG
@@ -110,16 +95,16 @@ Always use `include` (returns a string, pipeable) instead of `template` (returns
 ```
 
 ### Indentation in output
-Use `nindent N` (adds a leading newline + N spaces) when embedding multi-line template output:
+Use `nindent N` when embedding multi-line template output:
 ```yaml
 labels:
-  {{- include "myorg.labels" . | nindent 4 }}   # metadata.labels → nindent 4
+  {{- include "myorg.labels" . | nindent 4 }}        # metadata.labels
   matchLabels:
-    {{- include "myorg.selectorLabels" . | nindent 6 }}  # matchLabels → nindent 6
+    {{- include "myorg.selectorLabels" . | nindent 6 }}  # matchLabels
 ```
 
 ### Conditional output
-Use `{{- if .Value }}` guards for optional fields (see `app.kubernetes.io/version` in `myorg.labels`):
+Guard optional fields with `{{- if }}`:
 ```yaml
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
@@ -127,7 +112,6 @@ app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 ```
 
 ### Merging maps from values
-Use `{{- with .Values.someMap }}{{ toYaml . }}{{- end }}` to safely merge optional map values:
 ```yaml
 {{- with .Values.commonLabels }}
 {{ toYaml . }}
@@ -138,34 +122,22 @@ Use `{{- with .Values.someMap }}{{ toYaml . }}{{- end }}` to safely merge option
 
 ## values.yaml Conventions
 
-### Comment format (Helm best practice — mandatory)
-Every property **must** have a comment that starts with the property name:
-```yaml
-# nameOverride is an optional override for the chart name used in resource naming.
-nameOverride: ""
-```
-
-### Reserved values
-Values declared but not yet wired into templates must be annotated:
-```yaml
-# team is the team identifier for resource ownership tracking.
-# (reserved — not currently used in templates; intended for future use)
-team: ""
-```
-
-### No helm-docs annotations
-Do **not** add `## @param`, `## @section`, or `## @skip` annotations — this repo does not use helm-docs tooling.
-
-### Parent chart context
-Values in this library's `values.yaml` are **defaults only**. At render time, `.Values.*` resolves from the consuming application chart's context, not this file.
+- Every property **must** have a comment starting with the property name:
+  ```yaml
+  # nameOverride is an optional override for the chart name used in resource naming.
+  nameOverride: ""
+  ```
+- Values declared but not yet wired into templates must be annotated `(reserved — not currently used in templates; intended for future use)`
+- Do **not** add `## @param`, `## @section`, or `## @skip` annotations — this repo does not use helm-docs
+- `.Values.*` resolves from the **consuming chart's context** at render time, not from this library's `values.yaml`
 
 ---
 
 ## Chart.yaml Conventions
 
 - `type: library` — must never be changed to `application`
-- `version` follows [SemVer](https://semver.org/): increment on every template or values change
-- `appVersion` must stay in sync with `version` (library charts track no external application)
+- `version` follows SemVer; increment on every template or values change
+- `appVersion` must stay in sync with `version`
 - All four metadata fields must be present: `maintainers`, `keywords`, `home`, `sources`
 
 ---
@@ -176,21 +148,23 @@ Values in this library's `values.yaml` are **defaults only**. At render time, `.
 |--------|-----|
 | Add non-`_helpers.tpl` template files | Library charts must not define installable resources |
 | Change `type: library` to `application` | Breaks the library contract |
-| Wire `commonAnnotations`, `team`, or `environment` into templates without a plan | These are reserved; changes require a versioned release |
+| Wire `commonAnnotations`, `team`, or `environment` into templates without a plan | Reserved; changes require a versioned release |
 | Add `values.schema.json` | Not currently used; adds validation overhead without benefit |
-| Commit `*.tgz`, `charts/`, or `*.prov` | These are build artifacts — see `.gitignore` |
+| Commit `*.tgz`, `charts/`, or `*.prov` | Build artifacts — see `.gitignore` |
 | Modify `_helpers.tpl` logic without bumping `version` in `Chart.yaml` | Consumers pin to chart versions |
+| Test reserved values (`commonAnnotations`, `team`, `environment`) | No template wiring exists; testing creates false contracts |
 
 ---
 
 ## Adding a New Template
 
-1. Add the `{{- define "myorg.<name>" -}}` block to `templates/_helpers.tpl`
-2. Apply `trunc 63 | trimSuffix "-"` if the output is used as a Kubernetes name
+1. Add `{{- define "myorg.<name>" -}}` block to `templates/_helpers.tpl`
+2. Apply `trunc 63 | trimSuffix "-"` if output is used as a Kubernetes name
 3. Declare any new values in `values.yaml` with a `# propertyName is ...` comment
-4. Document the template in `README.md` (Named Templates Reference table + Values table)
-5. Bump `version` in `Chart.yaml` (patch for additive, minor for new behavior, major for breaking)
-6. Run `helm lint .` — must pass with 0 errors
+4. Add test cases to `tests/chart/tests/unit/` (or a new `*_test.yaml` file)
+5. Document the template in `README.md` (Named Templates Reference table + Values table)
+6. Bump `version` in `Chart.yaml` (patch for bug fix, minor for additive, major for breaking)
+7. Run `make all` — must pass with 0 errors and 0 test failures
 
 ---
 
