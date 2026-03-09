@@ -26,3 +26,4 @@ Makefile
 AGENTS.md
 .sisyphus/
 tests/
+.github/
