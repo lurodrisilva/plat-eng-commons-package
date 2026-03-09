@@ -8,15 +8,27 @@ A **Helm library chart** (`type: library`) providing shared naming helpers and K
 
 - **One template file**: `templates/_helpers.tpl` (37 lines, 5 named templates)
 - **No application code**: no Go, Python, TypeScript, or other language files
-- **No build system**: `helm` CLI is the only toolchain
+- **Toolchain**: `helm` CLI + `make` (see `Makefile` for all common tasks)
 
 ---
 
 ## Commands
 
+### Make targets (preferred — use these day-to-day)
+```bash
+make help             # List all available targets
+make lint             # Lint the chart (primary validation — run after every change)
+make test             # Run helm-unittest tests (graceful no-op when no tests exist)
+make snapshot-update  # Update helm-unittest snapshots
+make package          # Package the chart into a versioned .tgz archive
+make all              # Run lint + test
+make plugin-install   # Install the helm-unittest plugin (one-time setup)
+```
+
 ### Lint (primary validation — run after every change)
 ```bash
 helm lint .
+# or: make lint
 ```
 Expected output: `1 chart(s) linted, 0 chart(s) failed`
 The `[INFO] Chart.yaml: icon is recommended` warning is expected and non-blocking.
@@ -25,6 +37,7 @@ The `[INFO] Chart.yaml: icon is recommended` warning is expected and non-blockin
 ```bash
 helm package .
 # Output: plat-eng-commons-package-0.1.0.tgz (gitignored)
+# or: make package
 ```
 
 ### Template rendering (debug helpers in context)
@@ -33,10 +46,11 @@ helm package .
 helm template <release-name> ./path/to/consuming-chart --debug
 ```
 
-### Helm test (infrastructure exists, no tests yet)
+### Helm unittest (infrastructure exists, no tests yet)
 ```bash
 # templates/tests/ is empty — no tests defined yet
-helm test <release-name>
+# make test will print "No tests found in templates/tests/ — skipping"
+make test
 ```
 
 ### Dependency update (for consuming charts)
@@ -51,6 +65,7 @@ helm dependency update ./path/to/consuming-chart
 ```
 .
 ├── Chart.yaml              # Chart metadata (name, version, type: library)
+├── Makefile                # Common tasks: lint, test, package, snapshot-update
 ├── values.yaml             # Default values with inline documentation
 ├── templates/
 │   ├── _helpers.tpl        # All named templates (SOURCE OF TRUTH)
