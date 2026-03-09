@@ -1,5 +1,7 @@
 # plat-eng-commons-package
 
+[![CI](https://github.com/lurodrisilva/plat-eng-commons-package/actions/workflows/ci.yml/badge.svg)](https://github.com/lurodrisilva/plat-eng-commons-package/actions/workflows/ci.yml)
+
 A Helm library chart providing common naming helpers and Kubernetes labels for the platform engineering stack.
 
 > **This chart is a library chart. It cannot be installed directly.** Add it as a dependency in your application chart.
