@@ -44,6 +44,12 @@ package: ## Package the chart into a versioned .tgz archive
 	helm package .
 	@echo "Package complete"
 
+## Clean .tgz archive
+clean: ## Package the chart into a versioned .tgz archive
+	@echo "Cleaning plat-eng-commons-package..."
+	rm lat-eng-commons-package-*.tgz
+	@echo "Cleanup complete"
+
 ## Run lint and test
 all: lint test ## Run lint and test
 	@echo ""
