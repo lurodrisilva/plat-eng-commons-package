@@ -28,10 +28,18 @@ jobs:
       - name: Test
         run: make test
 
+  package:
+    name: Package Helm Chart
+    runs-on: ubuntu-latest
+    steps:
       - name: Package chart
         run: |
           make package
 
+  push:
+    name: Push into GHCR.IO
+    runs-on: ubuntu-latest
+    steps:          
       - name: Login to GHCR
         run: |
           echo "${GITHUB_TOKEN}" | helm registry login ghcr.io \
