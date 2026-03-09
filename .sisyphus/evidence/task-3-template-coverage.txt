@@ -1,0 +1,5 @@
+PASS: myorg.name
+PASS: myorg.fullname
+PASS: myorg.chart
+PASS: myorg.selectorLabels
+PASS: myorg.labels
