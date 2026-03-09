@@ -1,2 +1,12 @@
 # Sisyphus orchestration files (internal planning/evidence)
 .sisyphus/
+
+# Helm packaged chart archives
+*.tgz
+*.tar.gz
+
+# Helm dependency charts directory
+charts/
+
+# Helm provenance files
+*.prov
