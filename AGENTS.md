@@ -41,12 +41,23 @@ helm lint .   # [INFO] icon warning is expected and non-blocking
 helm template <release-name> ./path/to/consuming-chart --debug
 ```
 
+**CI** (GitHub Actions — runs automatically on push and PRs to `master`):
+```
+lint → test
+```
+Workflow file: `.github/workflows/helm-ci.yml`
+Trigger: push to any branch, pull_request targeting `master`
+Steps: checkout → install Helm v3.20.0 → `make plugin-install` → `make lint` → `make test`
+
 ---
 
 ## Repository Structure
 
 ```
 .
+├── .github/
+│   └── workflows/
+│       └── helm-ci.yml     # GitHub Actions CI: lint + test on push/PR
 ├── Chart.yaml              # Chart metadata (name, version, type: library)
 ├── Makefile                # Common tasks: lint, test, package, snapshot-update
 ├── values.yaml             # Default values with inline documentation
