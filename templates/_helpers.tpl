@@ -1,16 +1,8 @@
-{{/*
-Expand the name of the chart.
-*/}}
-{{- define "plat-eng-commons-package.name" -}}
+{{- define "myorg.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
-{{/*
-Create a default fully qualified app name.
-We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
-If release name contains chart name it will be used as a full name.
-*/}}
-{{- define "plat-eng-commons-package.fullname" -}}
+{{- define "myorg.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -23,40 +15,23 @@ If release name contains chart name it will be used as a full name.
 {{- end }}
 {{- end }}
 
-{{/*
-Create chart name and version as used by the chart label.
-*/}}
-{{- define "plat-eng-commons-package.chart" -}}
+{{- define "myorg.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
-{{/*
-Common labels
-*/}}
-{{- define "plat-eng-commons-package.labels" -}}
-helm.sh/chart: {{ include "plat-eng-commons-package.chart" . }}
-{{ include "plat-eng-commons-package.selectorLabels" . }}
+{{- define "myorg.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "myorg.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{- define "myorg.labels" -}}
+helm.sh/chart: {{ include "myorg.chart" . }}
+{{ include "myorg.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
-{{- end }}
-
-{{/*
-Selector labels
-*/}}
-{{- define "plat-eng-commons-package.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "plat-eng-commons-package.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
-{{- end }}
-
-{{/*
-Create the name of the service account to use
-*/}}
-{{- define "plat-eng-commons-package.serviceAccountName" -}}
-{{- if .Values.serviceAccount.create }}
-{{- default (include "plat-eng-commons-package.fullname" .) .Values.serviceAccount.name }}
-{{- else }}
-{{- default "default" .Values.serviceAccount.name }}
+{{- with .Values.commonLabels }}
+{{ toYaml . }}
 {{- end }}
 {{- end }}
