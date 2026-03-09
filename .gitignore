@@ -1,5 +1,5 @@
 # Sisyphus orchestration files (internal planning/evidence)
-.sisyphus/
+.sisyphus*
 
 # Helm packaged chart archives
 *.tgz
