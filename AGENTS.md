@@ -156,6 +156,15 @@ app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 
 ---
 
+## Git Workflow
+
+- **Never push directly to `master`**. Always create a feature branch and open a pull request.
+- Branch naming: `<type>/<short-description>` (e.g., `chore/add-yamllint`, `test/helm-unittests`, `fix/ci-helm-version`)
+- Run `make all` before pushing — CI must pass on the PR before merging.
+- After all changes are committed and pushed, open a PR with `gh pr create` and return the PR URL.
+
+---
+
 ## What NOT to Do
 
 | Action | Why |
