@@ -45,11 +45,11 @@ helm template <release-name> ./path/to/consuming-chart --debug
 
 **CI** (GitHub Actions — runs automatically on push and PRs to `master`):
 ```
-lint → test
+yamllint → lint → test → kubeconform
 ```
 Workflow file: `.github/workflows/helm-ci.yml`
 Trigger: push to any branch, pull_request targeting `master`
-Steps: checkout → install Helm v3.20.0 → `make plugin-install` → `make lint` → `make test`
+Steps: checkout → install Helm v3.20.0 → `make plugin-install` → install yamllint → install kubeconform → `make yamllint` → `make lint` → `make test` → `make kubeconform`
 
 ---
 
