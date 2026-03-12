@@ -8,5 +8,7 @@
 # Helm dependency charts directory
 charts/
 
+Chart.lock
+
 # Helm provenance files
 *.prov
