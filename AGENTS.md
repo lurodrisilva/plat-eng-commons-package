@@ -16,11 +16,13 @@ A **Helm library chart** (`type: library`) providing shared naming helpers and K
 
 ```bash
 make help             # List all available targets
+make yamllint         # Lint all non-template YAML files with yamllint
 make lint             # Lint the chart — run after every change
 make test             # Run helm-unittest tests (auto-builds deps)
 make snapshot-update  # Update helm-unittest snapshots
 make package          # Package the chart into a versioned .tgz archive
-make all              # lint + test
+make kubeconform      # Validate rendered test output with kubeconform
+make all              # yamllint + lint + test + kubeconform
 make plugin-install   # Install the helm-unittest plugin (one-time setup)
 ```
 
@@ -58,6 +60,7 @@ Steps: checkout → install Helm v3.20.0 → `make plugin-install` → `make lin
 ├── .github/
 │   └── workflows/
 │       └── helm-ci.yml     # GitHub Actions CI: lint + test on push/PR
+├── .yamllint.yml           # yamllint config (ignores Go template files)
 ├── Chart.yaml              # Chart metadata (name, version, type: library)
 ├── Makefile                # Common tasks: lint, test, package, snapshot-update
 ├── values.yaml             # Default values with inline documentation
