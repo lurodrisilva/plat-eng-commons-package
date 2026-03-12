@@ -16,11 +16,13 @@ A **Helm library chart** (`type: library`) providing shared naming helpers and K
 
 ```bash
 make help             # List all available targets
+make yamllint         # Lint all non-template YAML files with yamllint
 make lint             # Lint the chart — run after every change
 make test             # Run helm-unittest tests (auto-builds deps)
 make snapshot-update  # Update helm-unittest snapshots
 make package          # Package the chart into a versioned .tgz archive
-make all              # lint + test
+make kubeconform      # Validate rendered test output with kubeconform
+make all              # yamllint + lint + test + kubeconform
 make plugin-install   # Install the helm-unittest plugin (one-time setup)
 ```
 
@@ -43,11 +45,11 @@ helm template <release-name> ./path/to/consuming-chart --debug
 
 **CI** (GitHub Actions — runs automatically on push and PRs to `master`):
 ```
-lint → test
+yamllint → lint → test → kubeconform
 ```
 Workflow file: `.github/workflows/helm-ci.yml`
 Trigger: push to any branch, pull_request targeting `master`
-Steps: checkout → install Helm v3.20.0 → `make plugin-install` → `make lint` → `make test`
+Steps: checkout → install Helm v3.20.0 → `make plugin-install` → install yamllint → install kubeconform → `make yamllint` → `make lint` → `make test` → `make kubeconform`
 
 ---
 
@@ -58,6 +60,7 @@ Steps: checkout → install Helm v3.20.0 → `make plugin-install` → `make lin
 ├── .github/
 │   └── workflows/
 │       └── helm-ci.yml     # GitHub Actions CI: lint + test on push/PR
+├── .yamllint.yml           # yamllint config (ignores Go template files)
 ├── Chart.yaml              # Chart metadata (name, version, type: library)
 ├── Makefile                # Common tasks: lint, test, package, snapshot-update
 ├── values.yaml             # Default values with inline documentation
@@ -150,6 +153,15 @@ app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 - `version` follows SemVer; increment on every template or values change
 - `appVersion` must stay in sync with `version`
 - All four metadata fields must be present: `maintainers`, `keywords`, `home`, `sources`
+
+---
+
+## Git Workflow
+
+- **Never push directly to `master`**. Always create a feature branch and open a pull request.
+- Branch naming: `<type>/<short-description>` (e.g., `chore/add-yamllint`, `test/helm-unittests`, `fix/ci-helm-version`)
+- Run `make all` before pushing — CI must pass on the PR before merging.
+- After all changes are committed and pushed, open a PR with `gh pr create` and return the PR URL.
 
 ---
 

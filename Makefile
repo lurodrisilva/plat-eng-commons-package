@@ -1,4 +1,4 @@
-.PHONY: help plugin-install lint test snapshot-update package all
+.PHONY: help plugin-install yamllint lint test snapshot-update package kubeconform clean all
 
 # Default target
 help: ## Show available targets
@@ -7,6 +7,13 @@ help: ## Show available targets
 ## Install helm-unittest plugin
 plugin-install: ## Install helm-unittest Helm plugin
 	helm plugin install https://github.com/helm-unittest/helm-unittest --version "~1"
+
+## Lint YAML files with yamllint
+yamllint: ## Lint all non-template YAML files with yamllint
+	@echo "Running yamllint..."
+	yamllint .
+	@echo ""
+	@echo "YAML lint passed"
 
 ## Lint the library chart
 lint: ## Lint the Helm library chart
@@ -44,13 +51,22 @@ package: ## Package the chart into a versioned .tgz archive
 	helm package .
 	@echo "Package complete"
 
+## Validate rendered templates against Kubernetes schemas
+kubeconform: ## Validate rendered test output with kubeconform
+	@echo "Building test chart dependencies..."
+	@helm dependency build tests/chart > /dev/null 2>&1
+	@echo "Validating rendered output with kubeconform..."
+	helm template test-release tests/chart | kubeconform -strict -summary
+	@echo ""
+	@echo "Kubeconform validation passed"
+
 ## Clean .tgz archive
-clean: ## Package the chart into a versioned .tgz archive
+clean: ## Remove packaged .tgz archives
 	@echo "Cleaning plat-eng-commons-package..."
 	rm plat-eng-commons-package-*.tgz
 	@echo "Cleanup complete"
 
 ## Run lint and test
-all: lint test ## Run lint and test
+all: yamllint lint test kubeconform ## Run yamllint, lint, test, and kubeconform
 	@echo ""
 	@echo "All targets completed successfully"

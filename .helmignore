@@ -27,3 +27,4 @@ AGENTS.md
 .sisyphus/
 tests/
 .github/
+.yamllint.yml
