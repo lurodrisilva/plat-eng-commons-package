@@ -2,6 +2,13 @@ extends: default
 rules:
   line-length:
     max: 200
+    level: warning
+  # Document start (---) is optional for Helm chart files
+  document-start:
+    level: warning
+  # Braces: Helm templates use {{ }} which yamllint flags — ignored via ignore paths
+  braces:
+    level: warning
   truthy:
     check-keys: false
   comments:
