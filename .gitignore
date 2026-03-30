@@ -12,3 +12,22 @@ Chart.lock
 
 # Helm provenance files
 *.prov
+
+# Secret & environment-specific values
+secrets.yaml
+*-secrets.yaml
+values-*.yaml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor / IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Temp & debug
+*.tmp
+helm-debug.log
